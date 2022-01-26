@@ -1,5 +1,6 @@
 import { supabase } from "../supabaseClient";
-export const ADD_PROPERTY_DETAIL = async (property) => {
+
+export const ADD_PROPERTY_DETAIL_TO_DB = async (property) => {
   console.log("property details", property);
   const defaultRow = {
     zestimate: "",
@@ -77,10 +78,10 @@ export const ADD_PROPERTY_DETAIL = async (property) => {
   };
 
   const { error } = await supabase.from("places").insert([row]);
-  if (error) console.error("error adding place", error);
+  if (error) console.error("error adding place to db", error);
 };
 
-export const ADD_PLACES_RENTS = async (property) => {
+export const ADD_PLACES_RENTS_TO_DB = async (property) => {
   let properties = property.home_search.results;
   let rows = [];
   properties.map((property) => {
@@ -102,5 +103,39 @@ export const ADD_PLACES_RENTS = async (property) => {
     });
   });
   const { error } = await supabase.from("places_rents").insert(rows);
-  if (error) console.error("error adding places rent", error);
+  if (error) console.error("error adding places rent to db", error);
+};
+
+export const ADD_SOLD_PLACES_TO_DB = async (property) => {
+  let properties = property.results;
+  let rows = [];
+  properties.map((property) => {
+    rows.push({
+      listDate: property.list_date,
+      yearBuilt: property.description.year_built,
+      soldDate: property.description.sold_date,
+      soldPrice: property.description.sold_price,
+      bathsFull: property.description.baths_full,
+      lotSqft: property.description.lot_sqft,
+      Sqft: property.description.sqft,
+      bathsTotal: property.description.baths,
+      garage: property.description.garage,
+      stories: property.description.stories,
+      beds: property.description.beds,
+      listPrice: property.list_price,
+      property: property.property_id,
+      photosHref: property.photos?.map(({ href }) => href),
+      zipCode: property.location.address.postal_code,
+      longitude: property.location.address.coordinate.lon,
+      latitude: property.location.address.coordinate.lat,
+      city: property.location.address.city,
+      line: property.location.address.line,
+      state: property.location.address.state,
+      stateCode: property.location.address.state_code,
+      streetViewURL: property.location.street_view_url,
+      county: property.location.county.name,
+    });
+  });
+  const { error } = await supabase.from("places_comps").insert(rows);
+  if (error) console.error("error adding sold places to db", error);
 };
