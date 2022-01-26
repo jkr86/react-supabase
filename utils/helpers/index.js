@@ -1,60 +1,7 @@
 import { supabase } from "../supabaseClient";
-export const ADD_PROPERTY_DETAIL = async (property_detail) => {
-  console.log("property details", property_detail);
-  const row = {
-    id: property_detail.id,
-    addressLine1: "",
-    addressLine2: "",
-    city: property_detail.address.city,
-    zipCode: "",
-    state: property_detail.address.state,
-    photos: property_detail.photos,
-    line: "",
-    streetNumber: property_detail.address.street_number,
-    streetSuffix: property_detail.address.street_suffix,
-    timeZone: property_detail.address.time_zone,
-    county: property_detail.address.county,
-    streetName: property_detail.address.street_name,
-    country: property_detail.address.country,
-    description: property_detail.description,
-    created_at: "",
-    floodEnvironmentalRisk: property_detail.flood.environmental_risk,
-    longitude: property_detail.address.location.lon,
-    latitude: property_detail.address.location.lat,
-    floodFactor: property_detail.flood.flood_factor_score,
-    floodSeverity: property_detail.flood.severity,
-    noiseText: property_detail.noise.score_text,
-    noiseTraffic: property_detail.noise.traffic_text,
-    noiseLocal: property_detail.noise.local_text,
-    noiseScore: property_detail.noise.score,
-    noiseAir: property_detail.noise.airport_text,
-    propertyType: "",
-    rentalEstHigh: "",
-    rentalEstDate: "",
-    rentalEstLow: "",
-    rentalEst: "",
-    stories: property_detail.public_records[0].stories,
-    bathsFull: property_detail.public_records[0].baths_full,
-    bathsTotal: property_detail.public_records[0].baths,
-    yearBuilt: property_detail.public_records[0].year_built,
-    lastSoldPrice: "",
-    saleStatus: "",
-    lotSqft: property_detail.public_records[0].lot_width,
-    Sqft: property_detail.public_records[0].sqft,
-    bedroomsTotal: property_detail.public_records[0].beds,
-    garage: property_detail.public_records[0].garage,
-    neighbor: "",
-    propertyHistoryEvent: "",
-    propertyHistoryDate: "",
-    propertyHistorySqft: "",
-    propertyHistoryPrice: "",
-    propertyHistoryPreviousPrice: "",
-    schoolName: "",
-    schoolParentRating: "",
-    schoolRating: "",
-    avmValue: property_detail.avm.value,
-    avmValueHigh: property_detail.avm.value_high,
-    avmValueLow: property_detail.avm.value_low,
+export const ADD_PROPERTY_DETAIL = async (property) => {
+  console.log("property details", property);
+  const defaultRow = {
     zestimate: "",
     realityMoleHigh: "",
     realityMoleLow: "",
@@ -74,11 +21,86 @@ export const ADD_PROPERTY_DETAIL = async (property_detail) => {
     MashvisorThreeRoomValue: "",
     MashvisorFourRoomValue: "",
     MashvisorCount: "",
-    mprID: "",
     elevation: "",
   };
-  console.log("payload", row);
-  // const { data, error } = await supabase.from("places").insert([{ name: "The Shire", country_id: 554 }]);
-  // if (error) console.log("error mf is here", error);
-  // console.log("data mf is here", data);
+  const row = {
+    mprID: property.mpr_id,
+    city: property.address.city,
+    zipCode: property.address.postal_code,
+    state: property.address.state,
+    photos: property.photos,
+    line: property.address.line,
+    streetNumber: property.address.street_number,
+    streetSuffix: property.address.street_suffix,
+    timeZone: property.address.time_zone,
+    county: property.address.county,
+    streetName: property.address.street_name,
+    country: property.address.country,
+    description: property.description,
+    floodEnvironmentalRisk: property.flood.environmental_risk,
+    longitude: property.address.location.lon,
+    latitude: property.address.location.lat,
+    floodFactor: property.flood.flood_factor_score,
+    floodSeverity: property.flood.severity,
+    noiseText: property.noise.score_text,
+    noiseTraffic: property.noise.traffic_text,
+    noiseLocal: property.noise.local_text,
+    noiseScore: property.noise.score,
+    noiseAir: property.noise.airport_text,
+    propertyType: property.prop_common.type,
+    rentalEstHigh: property.rental_avm.estimate_high,
+    rentalEstDate: property.rental_avm.date,
+    rentalEstLow: property.rental_avm.estimate_low,
+    rentalEst: property.rental_avm.estimate,
+    stories: property.stories,
+    bathsFull: property.prop_common.baths_full,
+    bathsTotal: property.prop_common.bath,
+    yearBuilt: property.prop_common.year_built,
+    lastSoldPrice: property.prop_common.last_sold_price,
+    saleStatus: property.prop_common.status,
+    lotSqft: property.prop_common.lot_sqft,
+    Sqft: property.prop_common.sqft,
+    bedroomsTotal: property.prop_common.bed,
+    garage: property.public_records[0].garage,
+    neighbor: property.neighborhood,
+    propertyHistoryEvent: property.property_history.map(({ event_name }) => event_name),
+    propertyHistoryDate: property.property_history.map(({ date }) => date),
+    propertyHistorySqft: property.property_history.map(({ sqft }) => sqft),
+    propertyHistoryPrice: property.property_history.map(({ price }) => price),
+    propertyHistoryPreviousPrice: property.property_history.map(({ previous_event_price }) => previous_event_price),
+    schoolName: property.schools.filter((school) => school.relevance === "assigned").map(({ name }) => name),
+    schoolParentRating: property.schools.filter((school) => school.relevance === "assigned").map(({ ratings }) => ratings.parent_rating),
+    schoolRating: property.schools.filter((school) => school.relevance === "assigned").map(({ ratings }) => ratings.great_schools_rating),
+    avmValue: property.avm.value,
+    avmValueHigh: property.avm.value_high,
+    avmValueLow: property.avm.value_low,
+  };
+
+  const { error } = await supabase.from("places").insert([row]);
+  if (error) console.error("error adding place", error);
+};
+
+export const ADD_PLACES_RENTS = async (property) => {
+  let properties = property.home_search.results;
+  let rows = [];
+  properties.map((property) => {
+    rows.push({
+      photoURL: property.primary_photo.href,
+      address: property.location.address.line,
+      sqft: property.description.sqft,
+      communityName: property.community,
+      postalCode: property.location.address.postal_code,
+      price: property.list_price,
+      longitude: property.location.address.coordinate.lon,
+      latitude: property.location.address.coordinate.lat,
+      bathsFull: property.location.baths_full,
+      fullAddress: property.location.address.line,
+      bathsTotal: property.description.baths,
+      beds: property.description.beds,
+      city: property.location.address.city,
+      stateCode: property.location.address.state_code,
+    });
+  });
+  const { error } = await supabase.from("places_rents").insert(rows);
+  if (error) console.error("error adding places rent", error);
 };

@@ -22,3 +22,17 @@ export const GET_PROPERTY_DETAIL = async (propertyID) => {
   if (response.data) return response.data;
   return response;
 };
+
+export const GET_FOR_RENT = async (property) => {
+  let payload = {
+    city: property.address.city,
+    state_code: property.address.state_code,
+    location: property.address.postal_code,
+    sort: "recently_added_update",
+    property_type: "single_family",
+  };
+  let options = { ...defaultGetOptions, url: `${xRapidApiUrl}v2/for-rent`, params: payload };
+  let response = await axios.request(options);
+  if (response.data) return response.data;
+  return response;
+};

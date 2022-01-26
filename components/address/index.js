@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { GET_LOCATION, GET_PROPERTY_DETAIL } from "../../utils/APIs";
-import { ADD_PROPERTY_DETAIL } from "../../utils/helpers";
+import { GET_FOR_RENT, GET_LOCATION, GET_PROPERTY_DETAIL } from "../../utils/APIs";
+import { ADD_PLACES_RENTS, ADD_PROPERTY_DETAIL } from "../../utils/helpers";
 
 const Address = () => {
   const [addresses, setAddresses] = useState([]);
@@ -19,7 +19,9 @@ const Address = () => {
 
   const AddAddress = async (address) => {
     const { data } = await GET_PROPERTY_DETAIL(address.mpr_id);
-    ADD_PROPERTY_DETAIL(data.property_detail)
+    ADD_PROPERTY_DETAIL(data.property_detail);
+    const { data: forRent } = await GET_FOR_RENT(data.property_detail);
+    ADD_PLACES_RENTS(forRent);
   };
 
   return (
