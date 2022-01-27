@@ -68,16 +68,15 @@ const Address = () => {
 
     // Final message
     setUpdate("Success!");
-    // setTimeout(() => {
-    //   setIsInProgress(false);
-    // setErrors([]);
-
-    // }, 5000);
+    setTimeout(() => {
+      setIsInProgress(false);
+      setErrors([]);
+    }, 5000);
   };
   console.log("errors", errors);
   return (
     <div className='max-w-sm'>
-      <input value='14739 Rimgate Dr Whittier CA 90604' onChange={(e) => handleAddressChange(e.target.value)} className='w-full py-3 px-6 border border-gray-300 text-gray-600 bg-white rounded-md' placeholder='Enter an address' />
+      <input onChange={(e) => handleAddressChange(e.target.value)} className='w-full py-3 px-6 border border-gray-300 text-gray-600 bg-white rounded-md' placeholder='Enter an address' />
       {isInProgress ? (
         <>
           <div className='mb-4 mt-6 flex items-center w-full justify-between'>
@@ -110,17 +109,19 @@ const Address = () => {
           )}
         </>
       ) : (
-        // Addresses List
-        <ul className='py-2 shadow-xl w-full bg-white mt-4 rounded-md'>
-          {addresses.length === 0 && <p className='px-4 py-2 text-gray-600'>No addresses found</p>}
-          {addresses.map((address, idx) => {
-            return (
-              <li onClick={() => AddAddress(address)} className='px-4 py-2 my-1 hover:bg-gray-100 cursor-pointer' key={idx}>
-                {address.full_address[0]}
-              </li>
-            );
-          })}
-        </ul>
+        addresses.length > 0 && (
+          // Addresses List
+          <ul className='py-2 shadow-xl w-full bg-white mt-4 rounded-md'>
+            {addresses.length === 0 && <p className='px-4 py-2 text-gray-600'>No addresses found</p>}
+            {addresses.map((address, idx) => {
+              return (
+                <li onClick={() => AddAddress(address)} className='px-4 py-2 my-1 hover:bg-gray-100 cursor-pointer' key={idx}>
+                  {address.full_address[0]}
+                </li>
+              );
+            })}
+          </ul>
+        )
       )}
     </div>
   );
