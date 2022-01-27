@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { GET_LOCATION, GET_PROPERTY_DETAIL, GET_PROPERTIES_FOR_RENT, GET_SOLD_PROPERTIES, GET_PROPERTY_SALE_PRICE, GET_PROPERTY_RENTAL_PRICE, GET_AIRBNB_PROPERTY_RENTAL_RATES } from "../../utils/APIs";
 import { ADD_PLACES_FOR_RENT_TO_DB, ADD_PROPERTY_DETAIL_TO_DB, ADD_SOLD_PLACES_TO_DB, UPDATE_DB_PROPERTY } from "../../utils/helpers";
 
@@ -50,7 +50,7 @@ const Address = () => {
     const { data: salePrice, error: salePriceError } = await GET_PROPERTY_SALE_PRICE(property);
     salePriceError && setErrors([...errors, salePriceError]);
     salePrice && setUpdate("Updating property sale price");
-    salePrice && (await UPDATE_DB_PROPERTY("realtyMoleRental", propertyID, salePrice));
+    salePrice && (await UPDATE_DB_PROPERTY("realtyMoleSale", propertyID, salePrice));
 
     //Property rent price
     setUpdate("Getting property rent price");
@@ -73,7 +73,7 @@ const Address = () => {
       setErrors([]);
     }, 5000);
   };
-  console.log("errors", errors);
+
   return (
     <div className='max-w-sm'>
       <input onChange={(e) => handleAddressChange(e.target.value)} className='w-full py-3 px-6 border border-gray-300 text-gray-600 bg-white rounded-md' placeholder='Enter an address' />
