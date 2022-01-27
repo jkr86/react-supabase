@@ -77,12 +77,13 @@ export const ADD_PROPERTY_DETAIL_TO_DB = async (property) => {
     avmValueLow: property.avm.value_low,
   };
 
-  const { error } = await supabase.from("places").insert([row]);
+  const { error, data } = await supabase.from("places").insert([row]);
   if (error) console.error("error adding place to db", error);
+  return data;
 };
 
-export const ADD_PLACES_RENTS_TO_DB = async (property) => {
-  let properties = property.home_search.results;
+export const ADD_PLACES_FOR_RENT_TO_DB = async (property) => {
+  let properties = property.data.home_search.results;
   let rows = [];
   properties.map((property) => {
     rows.push({
@@ -107,7 +108,7 @@ export const ADD_PLACES_RENTS_TO_DB = async (property) => {
 };
 
 export const ADD_SOLD_PLACES_TO_DB = async (property) => {
-  let properties = property.results;
+  let properties = property.data.results;
   let rows = [];
   properties.map((property) => {
     rows.push({
@@ -138,4 +139,21 @@ export const ADD_SOLD_PLACES_TO_DB = async (property) => {
   });
   const { error } = await supabase.from("places_comps").insert(rows);
   if (error) console.error("error adding sold places to db", error);
+};
+
+export const UPDATE_DB_PROPERTY = async (type, propertyID, property) => {
+  switch (type) {
+    case "realtyMoleSale":
+      let salePayload = { realtyMoleAvg: property.price, realtyMoleLow: property.priceRangeLow, realtyMoleHigh: property.priceRangeHigh };
+      const { saleError } = await supabase.from("places").update(salePayload).match({ id: propertyID });
+      if (saleError) console.error("error updating  property sale values", saleError);
+      break;
+    case "realtyMoleRental":
+      let rentalPayload = { realtyMoleRentAvg: property.rent, realtyMoleRentLow: property.rentRangeLow, realtyMoleRentHigh: property.rentRangeLow };
+      const { rentalError } = await supabase.from("places").update(rentalPayload).match({ id: propertyID });
+      if (rentalError) console.error("error updating  property sale values", rentalError);
+      break;
+    default:
+      break;
+  }
 };
