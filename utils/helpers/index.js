@@ -1,29 +1,6 @@
 import { supabase } from "../supabaseClient";
 
 export const ADD_PROPERTY_DETAIL_TO_DB = async (property) => {
-  console.log("property details", property);
-  const defaultRow = {
-    zestimate: "",
-    realityMoleHigh: "",
-    realityMoleLow: "",
-    realityMoleAvg: "",
-    realityMoleRentAvg: "",
-    realityMoleRentLow: "",
-    realityMoleRentHigh: "",
-    airbnbStudioValue: "",
-    airbnbOneRoomValue: "",
-    airbnbTwoRoomValue: "",
-    airbnbThreeRoomValue: "",
-    airbnbFourRoomValue: "",
-    airBnbCount: "",
-    MashvisorStudioValue: "",
-    MashvisorOneRoomValue: "",
-    MashvisorTwoRoomValue: "",
-    MashvisorThreeRoomValue: "",
-    MashvisorFourRoomValue: "",
-    MashvisorCount: "",
-    elevation: "",
-  };
   const row = {
     mprID: property.mpr_id,
     city: property.address.city,
@@ -151,7 +128,27 @@ export const UPDATE_DB_PROPERTY = async (type, propertyID, property) => {
     case "realtyMoleRental":
       let rentalPayload = { realtyMoleRentAvg: property.rent, realtyMoleRentLow: property.rentRangeLow, realtyMoleRentHigh: property.rentRangeLow };
       const { rentalError } = await supabase.from("places").update(rentalPayload).match({ id: propertyID });
-      if (rentalError) console.error("error updating  property sale values", rentalError);
+      if (rentalError) console.error("error updating property property rental values", rentalError);
+      break;
+    case "airbnbRentalRates":
+      let rentalRatePayload = {
+        airbnbStudioValue: property.count.studio_value,
+        airbnbOneRoomValue: property.count.one_room_value,
+        airbnbTwoRoomValue: property.content.two_room_value,
+        airbnbThreeRoomValue: property.content.three_room_value,
+        airbnbFourRoomValue: property.content.four_room_value,
+        airbnbCount: property.sample_count,
+      };
+      const { rentalRateError } = await supabase.from("places").update(rentalRatePayload).match({ id: propertyID });
+      if (rentalRateError) console.error("error updating property airbnb rental rate values", rentalError);
+      break;
+    case "zestimate":
+      const { zestimateError } = await supabase.from("places").update({ zestimate: property.zestimate }).match({ id: propertyID });
+      if (zestimateError) console.error("error updating property zestimate values", zestimateError);
+      break;
+    case "elevation":
+      const { elevationError } = await supabase.from("places").update({ elevation: property.elevation }).match({ id: propertyID });
+      if (elevationError) console.error("error updating property elevation", zestimateError);
       break;
     default:
       break;

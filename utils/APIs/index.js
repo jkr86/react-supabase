@@ -1,26 +1,40 @@
 import { data } from "autoprefixer";
-import { realEstateApiHost, realEstateApiKey, realtyMoleApiHost, realtyMoleApiKey, realEstateApiUrl, realtyMoleApiUrl, mashvisorApiHost, mashvisorApiKey, mashvisorApiUrl } from "../constants";
+import { realEstateApiHost, xRapidAPIKey, realtyMoleApiHost, realEstateApiUrl, realtyMoleApiUrl, mashvisorApiHost, mashvisorApiUrl, zestimateApiHost, zestimateApiUrl, elevationAPIHost, elevationAPIUrl } from "../constants";
 
 const axios = require("axios").default;
 let realEstateAPIGetOptions = {
   method: "GET",
   headers: {
     "x-rapidapi-host": realEstateApiHost,
-    "x-rapidapi-key": realEstateApiKey,
+    "x-rapidapi-key": xRapidAPIKey,
   },
 };
 let realtyMoleAPIGetOptions = {
   method: "GET",
   headers: {
     "x-rapidapi-host": realtyMoleApiHost,
-    "x-rapidapi-key": realtyMoleApiKey,
+    "x-rapidapi-key": xRapidAPIKey,
   },
 };
 let mashvisorAPIGetOptions = {
   method: "GET",
   headers: {
     "x-rapidapi-host": mashvisorApiHost,
-    "x-rapidapi-key": mashvisorApiKey,
+    "x-rapidapi-key": xRapidAPIKey,
+  },
+};
+let zillowAPIGetOptions = {
+  method: "GET",
+  headers: {
+    "x-rapidapi-host": zestimateApiHost,
+    "x-rapidapi-key": xRapidAPIKey,
+  },
+};
+let elevationAPIGetOptions = {
+  method: "GET",
+  headers: {
+    "x-rapidapi-host": elevationAPIHost,
+    "x-rapidapi-key": xRapidAPIKey,
   },
 };
 
@@ -123,6 +137,58 @@ export const GET_AIRBNB_PROPERTY_RENTAL_RATES = async (property) => {
     response = await axios.request(options);
   } catch (e) {
     response.error = "Error getting airbnb property rental rates";
+  }
+  if (response.status === "error") {
+    delete response.data;
+    response.error = e.message;
+  }
+  return response;
+};
+
+export const SEARCH_ZILLOW_ZIP_ID = async (address) => {
+  let payload = {
+    query: address,
+  };
+  let options = { ...zillowAPIGetOptions, url: `${zestimateApiUrl}/search`, params: payload };
+  let response = {};
+  try {
+    response = await axios.request(options);
+  } catch (e) {
+    response.error = "Error searching property zip id";
+  }
+  return response;
+};
+
+export const GET_PROPERTY_ZESTIMATE = async (zipID) => {
+  let payload = {
+    zpid: zipID,
+  };
+  let options = { ...zillowAPIGetOptions, url: `${zestimateApiUrl}/zestimate`, params: payload };
+  let response = {};
+  try {
+    response = await axios.request(options);
+  } catch (e) {
+    response.error = "Error getting property zestimate";
+  }
+  return response;
+};
+
+export const GET_PROPERTY_ELEVATION = async (property) => {
+  let locations = `${property.address.location.lon},${property.address.location.lat}`;
+  let payload = {
+    locations,
+    unit: "feet",
+  };
+  let options = { ...elevationAPIGetOptions, url: `${elevationAPIUrl}/elevation`, params: payload };
+  let response = {};
+  try {
+    response = await axios.request(options);
+  } catch (e) {
+    response.error = "Error getting property elevation";
+  }
+  if (response.status === "error") {
+    delete response.data;
+    response.error = e.message;
   }
   return response;
 };

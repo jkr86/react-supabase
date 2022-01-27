@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { GET_LOCATION, GET_PROPERTY_DETAIL, GET_PROPERTIES_FOR_RENT, GET_SOLD_PROPERTIES, GET_PROPERTY_SALE_PRICE, GET_PROPERTY_RENTAL_PRICE, GET_AIRBNB_PROPERTY_RENTAL_RATES } from "../../utils/APIs";
+import { GET_LOCATION, GET_PROPERTY_DETAIL, GET_PROPERTIES_FOR_RENT, GET_SOLD_PROPERTIES, GET_PROPERTY_SALE_PRICE, GET_PROPERTY_RENTAL_PRICE, GET_AIRBNB_PROPERTY_RENTAL_RATES, SEARCH_ZILLOW_ZIP_ID, GET_PROPERTY_ZESTIMATE, GET_PROPERTY_ELEVATION } from "../../utils/APIs";
 import { ADD_PLACES_FOR_RENT_TO_DB, ADD_PROPERTY_DETAIL_TO_DB, ADD_SOLD_PLACES_TO_DB, UPDATE_DB_PROPERTY } from "../../utils/helpers";
 
 const Address = () => {
@@ -9,6 +9,7 @@ const Address = () => {
   const [errors, setErrors] = useState([]);
 
   const handleAddressChange = async (address) => {
+    setErrors([]);
     setIsInProgress(true);
     const { data } = await GET_LOCATION(address);
     if (data?.length > 0) {
@@ -22,14 +23,20 @@ const Address = () => {
   const AddAddress = async (address) => {
     // Hide the address
     setIsInProgress(true);
-
+    // Global variables
+    let property;
+    let propertyID;
+    let fullAddress = address.full_address[0];
     // Property detail
     setUpdate("Getting property detail");
-    const { data } = await GET_PROPERTY_DETAIL(address.mpr_id);
-    const property = data.property_detail;
-    setUpdate("Adding property details to database");
-    const dbProperty = await ADD_PROPERTY_DETAIL_TO_DB(property);
-    const propertyID = dbProperty[0].id;
+    const { data, error } = await GET_PROPERTY_DETAIL(address.mpr_id);
+    error && setErrors([...errors, error]);
+    if (data) {
+      setUpdate("Adding property details to database");
+      property = data.property_detail;
+      const dbProperty = await ADD_PROPERTY_DETAIL_TO_DB(property);
+      propertyID = dbProperty[0].id;
+    }
 
     // Properties for rent
     setUpdate("Getting properties for rent");
@@ -66,6 +73,29 @@ const Address = () => {
     rentalRates && setUpdate("Updating Airbnb property rental rates");
     rentalRates && (await UPDATE_DB_PROPERTY("airbnbRentalRates", propertyID, rentalRates));
 
+    // Property Zestimate
+    setUpdate("Searching property zip id");
+    const { data: zipIDSearchResults, error: zipIDSearchError } = await SEARCH_ZILLOW_ZIP_ID(fullAddress);
+    zipIDSearchError && setErrors([...errors, zipIDSearchError]);
+    if (zipIDSearchResults) {
+      let zipID = zipIDSearchResults.results[0].metaData.zpid;
+      setUpdate("Getting property zestimate");
+      const { data: zestimateData, error: zestimateError } = await GET_PROPERTY_ZESTIMATE(zipID);
+      zestimateError && setErrors([...errors, zestimateError]);
+      zestimateData && setUpdate("Updating property zestimate");
+      zestimateData && (await UPDATE_DB_PROPERTY("zestimate", propertyID, zestimateData));
+    }
+
+    //Property elevation
+    setUpdate("Getting property elevation");
+    const { data: elevationData, error: elevationError } = await GET_PROPERTY_ELEVATION(property);
+    elevationError && setErrors([...errors, elevationError]);
+    if (elevationData.status === "success") {
+      let elevation = elevationData.data[0].elevation;
+      setUpdate("Updating property elevation");
+      await UPDATE_DB_PROPERTY("elevation", propertyID, { elevation: elevation });
+    }
+
     // Final message
     setUpdate("Success!");
     setTimeout(() => {
@@ -76,7 +106,7 @@ const Address = () => {
 
   return (
     <div className='max-w-sm'>
-      <input onChange={(e) => handleAddressChange(e.target.value)} className='w-full py-3 px-6 border border-gray-300 text-gray-600 bg-white rounded-md' placeholder='Enter an address' />
+      <input value='14739 Rimgate Dr Whittier CA 90604' onChange={(e) => handleAddressChange(e.target.value)} className='w-full py-3 px-6 border border-gray-300 text-gray-600 bg-white rounded-md' placeholder='Enter an address' />
       {isInProgress ? (
         <>
           <div className='mb-4 mt-6 flex items-center w-full justify-between'>
